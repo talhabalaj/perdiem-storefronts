@@ -5,20 +5,40 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check": "next typegen && vp check",
+    "check:fix": "next typegen && vp check --fix",
+    "test": "vp test run",
+    "e2e": "playwright test",
+    "verify": "pnpm check && vp test run && pnpm e2e",
+    "typegen": "next typegen",
+    "db:reset": "rm -f data/store.db data/store.db-wal data/store.db-shm",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.108.0",
+    "better-sqlite3": "13.2.0",
+    "drizzle-orm": "0.45.4",
+    "lucide-react": "^1.74.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/turbopack": "4.3.3",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "0.31.11",
     "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-plus": "1.7.0"
+  },
+  "engines": {
+    "node": ">=22.18"
   },
   "packageManager": "pnpm@12.21.0"
 }

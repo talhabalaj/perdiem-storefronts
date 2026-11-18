@@ -1,0 +1,12 @@
+services:
+  storefront:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      ROOT_DOMAIN: localhost
+    volumes:
+      - storefront-data:/data
+
+volumes:
+  storefront-data:

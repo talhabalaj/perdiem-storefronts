@@ -1,26 +1,162 @@
 @import "tailwindcss";
 
+/*
+ * Every color, radius and font in the UI goes through these tokens. The platform pages use
+ * the defaults below; a storefront overrides them inline from its theme (see lib/theme).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f5f2;
+  --foreground: #1d2433;
+  --primary: #1d2433;
+  --primary-foreground: #f4f5f2;
+  --muted: #e6e8e3;
+  --muted-foreground: #5b6270;
+  --accent: #3e63dd;
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+  --font-heading-family: var(--font-golos);
+  --font-body-family: var(--font-golos);
+
+  /* Motion: strong custom curves; the built-in CSS easings are too weak. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-store]) {
+    --background: #171b24;
+    --foreground: #eceef2;
+    --primary: #eceef2;
+    --primary-foreground: #171b24;
+    --muted: #232937;
+    --muted-foreground: #a3a9b6;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --radius-card: var(--radius-card);
+  --radius-control: var(--radius-control);
+  --font-heading: var(--font-heading-family);
+  --font-body: var(--font-body-family);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body-family), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--primary));
+  outline-offset: 2px;
+}
+
+/* Every pressable element confirms the press. Fast, small, never from nothing. */
+@utility press {
+  transition: transform 160ms var(--ease-out);
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/*
+ * Order sheet (native <dialog>): a bottom sheet on phones, a right drawer from 640px.
+ * Enter uses the drawer curve; exit is faster, because the user has already decided.
+ */
+.order-sheet {
+  transform: translateY(100%);
+  transition:
+    transform 200ms var(--ease-out),
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+.order-sheet[open] {
+  transform: translateY(0);
+  transition:
+    transform 320ms var(--ease-drawer),
+    overlay 320ms allow-discrete,
+    display 320ms allow-discrete;
+}
+@starting-style {
+  .order-sheet[open] {
+    transform: translateY(100%);
+  }
+}
+@media (min-width: 640px) {
+  .order-sheet {
+    transform: translateX(100%);
+  }
+  .order-sheet[open] {
+    transform: translateX(0);
+  }
+  @starting-style {
+    .order-sheet[open] {
+      transform: translateX(100%);
+    }
+  }
+}
+.order-sheet::backdrop {
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transition:
+    opacity 200ms ease,
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+.order-sheet[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .order-sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* The order bar slides up from its own height the first time the cart has something in it. */
+.order-bar {
+  transition: transform 300ms var(--ease-out);
+  @starting-style {
+    transform: translateY(100%);
+  }
+}
+
+/* Reduced motion: keep fades that aid comprehension, drop movement. */
+@media (prefers-reduced-motion: reduce) {
+  .order-sheet,
+  .order-sheet[open],
+  .order-bar {
+    transform: none;
+    transition-property: opacity, overlay, display;
+  }
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Platform demo: a switched-in preview fades up from a slight blur, so the two brands never
+   read as two overlapping pictures. Short, because it answers a click. */
+.address-swap {
+  transition:
+    opacity 220ms var(--ease-out),
+    filter 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .address-swap {
+    transform: none;
+    filter: none;
+  }
 }

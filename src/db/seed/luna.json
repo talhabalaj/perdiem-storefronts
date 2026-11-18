@@ -1,0 +1,149 @@
+{
+  "slug": "luna",
+  "name": "Luna Café",
+  "tagline": "Slow coffee & morning bakes in Carroll Gardens",
+  "address": "212 Court St, Brooklyn, NY 11201",
+  "phone": "(718) 555-0142",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "locale": "en-US",
+  "customDomains": ["order.lunacafe.test"],
+  "seo": {
+    "title": "Luna Café · Order coffee & pastries online",
+    "description": "Single-origin coffee, laminated pastries and weekend pancakes. Order ahead for pickup in Brooklyn."
+  },
+  "theme": {
+    "colors": {
+      "primary": "#2f3c8f",
+      "primaryForeground": "#f5f6fb",
+      "background": "#eef0f5",
+      "foreground": "#18203a",
+      "muted": "#dde2ec",
+      "mutedForeground": "#535a72",
+      "accent": "#e8c468"
+    },
+    "radius": "md",
+    "fontHeading": "imbue",
+    "fontBody": "familjen-grotesk",
+    "layout": "classic",
+    "logoUrl": "/logos/luna.png",
+    "heroImageUrl": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=70&auto=format&fit=crop"
+  },
+  "hours": [
+    {
+      "day": 0,
+      "open": "08:00",
+      "close": "15:00"
+    },
+    {
+      "day": 1,
+      "open": "07:00",
+      "close": "17:00"
+    },
+    {
+      "day": 2,
+      "open": "07:00",
+      "close": "17:00"
+    },
+    {
+      "day": 3,
+      "open": "07:00",
+      "close": "17:00"
+    },
+    {
+      "day": 4,
+      "open": "07:00",
+      "close": "17:00"
+    },
+    {
+      "day": 5,
+      "open": "07:00",
+      "close": "18:00"
+    },
+    {
+      "day": 6,
+      "open": "08:00",
+      "close": "18:00"
+    }
+  ],
+  "menu": [
+    {
+      "name": "Coffee",
+      "items": [
+        {
+          "name": "Flat White",
+          "description": "Double ristretto, silky whole milk.",
+          "priceCents": 475,
+          "imageUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Espresso",
+          "description": "Rotating single origin. Ask what's on.",
+          "priceCents": 350,
+          "imageUrl": "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Iced Oat Latte",
+          "description": "Oat milk, double shot, over ice.",
+          "priceCents": 575,
+          "imageUrl": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Cold Brew",
+          "description": "Steeped 18 hours. Bold, chocolatey, low acid.",
+          "priceCents": 500,
+          "imageUrl": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Batch Brew",
+          "description": "Bottomless drip, refills on us.",
+          "priceCents": 300,
+          "imageUrl": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        }
+      ]
+    },
+    {
+      "name": "Bakery",
+      "items": [
+        {
+          "name": "Butter Croissant",
+          "description": "Three-day lamination, French butter.",
+          "priceCents": 425,
+          "imageUrl": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Country Sourdough",
+          "description": "Whole loaf, baked every morning at 6.",
+          "priceCents": 1100,
+          "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=70&auto=format&fit=crop",
+          "soldOut": true
+        },
+        {
+          "name": "Chocolate Ganache Cake",
+          "description": "A slice of dark chocolate cake with salted ganache.",
+          "priceCents": 750,
+          "imageUrl": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        }
+      ]
+    },
+    {
+      "name": "Weekend Brunch",
+      "items": [
+        {
+          "name": "Buttermilk Pancakes",
+          "description": "Stack of three, maple, whipped butter, berries.",
+          "priceCents": 1400,
+          "imageUrl": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        }
+      ]
+    }
+  ]
+}

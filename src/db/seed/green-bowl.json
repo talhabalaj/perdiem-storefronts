@@ -1,0 +1,118 @@
+{
+  "slug": "green-bowl",
+  "name": "Green Bowl",
+  "tagline": "Seasonal bowls, built to order in Shoreditch",
+  "address": "48 Rivington St, London EC2A 3QP",
+  "phone": "020 7946 0321",
+  "timezone": "Europe/London",
+  "currency": "GBP",
+  "locale": "en-GB",
+  "customDomains": [],
+  "seo": {
+    "title": "Green Bowl · Fresh bowls & salads, delivered fast",
+    "description": "Seasonal grain bowls, poke and salads made to order. Order online for collection in Shoreditch."
+  },
+  "theme": {
+    "colors": {
+      "primary": "#1f6a42",
+      "primaryForeground": "#f3f8ef",
+      "background": "#ecf2e6",
+      "foreground": "#10291b",
+      "muted": "#dae6cf",
+      "mutedForeground": "#46604f",
+      "accent": "#b3305f"
+    },
+    "radius": "full",
+    "fontHeading": "gabarito",
+    "fontBody": "golos-text",
+    "layout": "gallery",
+    "logoUrl": "/logos/green-bowl.png",
+    "heroImageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=70&auto=format&fit=crop"
+  },
+  "hours": [
+    {
+      "day": 1,
+      "open": "10:30",
+      "close": "21:00"
+    },
+    {
+      "day": 2,
+      "open": "10:30",
+      "close": "21:00"
+    },
+    {
+      "day": 3,
+      "open": "10:30",
+      "close": "21:00"
+    },
+    {
+      "day": 4,
+      "open": "10:30",
+      "close": "21:00"
+    },
+    {
+      "day": 5,
+      "open": "10:30",
+      "close": "22:00"
+    },
+    {
+      "day": 6,
+      "open": "11:00",
+      "close": "22:00"
+    }
+  ],
+  "menu": [
+    {
+      "name": "Bowls",
+      "items": [
+        {
+          "name": "Harvest Grain Bowl",
+          "description": "Farro, roast squash, avocado, pickled red onion, tahini.",
+          "priceCents": 1095,
+          "imageUrl": "https://images.unsplash.com/photo-1623428187969-5da2dcea5ebf?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Salmon Poke",
+          "description": "Sushi rice, citrus salmon, edamame, mango, sesame.",
+          "priceCents": 1295,
+          "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Rainbow Buddha Bowl",
+          "description": "Chickpeas, sweet potato, red cabbage, greens, miso dressing.",
+          "priceCents": 995,
+          "imageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        }
+      ]
+    },
+    {
+      "name": "Salads",
+      "items": [
+        {
+          "name": "Watermelon & Feta",
+          "description": "Mint, blueberries, toasted seeds, lime.",
+          "priceCents": 895,
+          "imageUrl": "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        },
+        {
+          "name": "Kale Caesar",
+          "description": "Crispy chickpeas, parmesan, lemon anchovy dressing.",
+          "priceCents": 850,
+          "imageUrl": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=70&auto=format&fit=crop",
+          "soldOut": true
+        },
+        {
+          "name": "Pesto Farfalle Salad",
+          "description": "Basil pesto, cherry tomatoes, rocket.",
+          "priceCents": 795,
+          "imageUrl": "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&q=70&auto=format&fit=crop",
+          "soldOut": false
+        }
+      ]
+    }
+  ]
+}
