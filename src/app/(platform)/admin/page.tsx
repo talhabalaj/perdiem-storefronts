@@ -1,3 +1,5 @@
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { StoresTable } from "@/components/admin/StoresTable";
@@ -7,10 +9,20 @@ import { getRepository } from "@/lib/repo";
 export default function AdminHome() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 lg:px-8 lg:py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">All stores</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Every storefront this platform serves. Pick one to change its branding or menu.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">All stores</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every storefront this platform serves. Pick one to change its branding or menu.
+          </p>
+        </div>
+        <Link
+          href="/admin/new"
+          className="press inline-flex h-10 items-center gap-2 rounded-control bg-foreground px-4 text-sm font-semibold text-background"
+        >
+          <Plus aria-hidden className="size-4" /> New store
+        </Link>
+      </div>
       <Suspense fallback={<div className="mt-8 h-64 animate-pulse rounded-card bg-muted" />}>
         <StoresOverview />
       </Suspense>

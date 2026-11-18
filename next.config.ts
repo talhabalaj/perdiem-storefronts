@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // The Docker image runs the self-contained server; local `next start` keeps the default.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
+  // The not-found page links back to the platform, which can live on a different host.
+  env: { NEXT_PUBLIC_ROOT_DOMAIN: process.env.ROOT_DOMAIN ?? "localhost" },
   cacheComponents: true,
   devIndicators: false,
   partialPrefetching: true,

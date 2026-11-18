@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 import type { Category, MenuItem } from "@/lib/schemas";
+import { AddDishForm } from "./AddDishForm";
 import { MenuItemRow } from "./MenuItemRow";
 import { useAdminStore } from "./useAdminStore";
 
@@ -26,6 +27,11 @@ export function MenuManager() {
 
   return (
     <div className="space-y-4">
+      <AddDishForm
+        slug={slug}
+        sections={menu.map((category) => category.name)}
+        currency={store.currency}
+      />
       <div className="flex flex-wrap items-center gap-3">
         <label className="relative min-w-56 flex-1">
           <span className="sr-only">Search the menu</span>
@@ -64,9 +70,7 @@ export function MenuManager() {
       <MenuTable slug={slug} currency={store.currency} sections={sections} />
       {sections.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
-          {filter === "soldOut" && needle === ""
-            ? "Nothing is sold out."
-            : "No dishes match your search."}
+          {emptyMessage(menu.length, filter, needle)}
         </p>
       ) : null}
     </div>
@@ -124,4 +128,11 @@ function MenuTable({
       </table>
     </div>
   );
+}
+
+function emptyMessage(sections: number, filter: Filter, needle: string): string {
+  if (sections === 0) return "No dishes yet. Add the first one above.";
+  return filter === "soldOut" && needle === ""
+    ? "Nothing is sold out."
+    : "No dishes match your search.";
 }

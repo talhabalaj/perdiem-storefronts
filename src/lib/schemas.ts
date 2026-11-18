@@ -20,7 +20,7 @@ export const imageSource = z.union([
 ]);
 const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected 24h time like 09:30");
 const TIME_ZONES = new Set(Intl.supportedValuesOf("timeZone"));
-const slug = z
+export const slugSchema = z
   .string()
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Expected a lowercase slug like green-bowl");
 
@@ -68,7 +68,7 @@ export const CategorySchema = z.object({
 
 export const StoreSchema = z.object({
   id: z.number().int().positive(),
-  slug,
+  slug: slugSchema,
   name: z.string().min(1),
   tagline: z.string(),
   address: z.string(),
@@ -111,6 +111,6 @@ export type StoreSummary = Pick<Store, "id" | "slug" | "name" | "tagline" | "the
   customDomains: string[];
 };
 
-function isValidTimeZone(tz: string): boolean {
+export function isValidTimeZone(tz: string): boolean {
   return TIME_ZONES.has(tz);
 }

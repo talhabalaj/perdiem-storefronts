@@ -6,10 +6,12 @@ export function StoreFacts({ address }: { address: string }) {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
       <OpenStatus />
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-        <MapPin aria-hidden className="size-4" strokeWidth={1.75} />
-        {address}
-      </span>
+      {address ? (
+        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+          <MapPin aria-hidden className="size-4" strokeWidth={1.75} />
+          {address}
+        </span>
+      ) : null}
     </div>
   );
 }

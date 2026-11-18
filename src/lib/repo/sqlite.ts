@@ -1,9 +1,11 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { categories, menuItems, storeDomains, stores } from "@/db/schema";
 import { MenuItemPatchSchema, MenuItemSchema, StoreSchema, ThemeSchema } from "@/lib/schemas";
 import type { Category, MenuItem, MenuItemPatch, Store, StoreSummary, Theme } from "@/lib/schemas";
-import type { StoreRepository } from "./types";
+import type { NewMenuItem } from "@/lib/new-store";
+import { StoreConflictError } from "./types";
+import type { NewStoreRecord, StoreRepository } from "./types";
 
 type StoreRow = typeof stores.$inferSelect;
 type ItemRow = typeof menuItems.$inferSelect;
@@ -11,6 +13,15 @@ type ItemRow = typeof menuItems.$inferSelect;
 // JSON columns are typed by Drizzle but not checked; parse at the boundary so a bad row
 // surfaces here instead of as a broken theme in the browser.
 const toStore = (row: StoreRow): Store => StoreSchema.parse(row);
+
+/**
+ * Runs synchronous better-sqlite3 work behind the async repository contract. Errors become
+ * rejections, never synchronous throws, so callers can treat every method the same way.
+ */
+const settle = <T>(work: () => T): Promise<T> =>
+  new Promise((resolve) => {
+    resolve(work());
+  });
 const toMenuItem = ({
   id,
   name,
@@ -89,5 +100,79 @@ export class SqliteStoreRepository implements StoreRepository {
       .where(and(eq(menuItems.id, itemId), eq(menuItems.storeId, storeId)))
       .returning();
     return row ? toMenuItem(row) : null;
+  }
+
+  createStore({ customDomain, ...store }: NewStoreRecord): Promise<Store> {
+    return settle(() =>
+      toStore(
+        this.db.transaction((tx) => {
+          // Checked inside the transaction; the unique indexes are the backstop for races.
+          if (tx.select({ id: stores.id }).from(stores).where(eq(stores.slug, store.slug)).get()) {
+            throw new StoreConflictError("slug");
+          }
+          const domainTaken =
+            customDomain !== null &&
+            tx
+              .select({ hostname: storeDomains.hostname })
+              .from(storeDomains)
+              .where(eq(storeDomains.hostname, customDomain))
+              .get();
+          if (domainTaken) throw new StoreConflictError("customDomain");
+
+          const created = tx
+            .insert(stores)
+            .values(StoreSchema.omit({ id: true }).parse(store))
+            .returning()
+            .get();
+          if (customDomain !== null)
+            tx.insert(storeDomains).values({ hostname: customDomain, storeId: created.id }).run();
+          return created;
+        }),
+      ),
+    );
+  }
+
+  addMenuItem(storeId: number, { section, ...item }: NewMenuItem): Promise<MenuItem> {
+    return settle(() =>
+      toMenuItem(
+        this.db.transaction((tx) => {
+          const existing = tx
+            .select({ id: categories.id })
+            .from(categories)
+            .where(and(eq(categories.storeId, storeId), eq(categories.name, section)))
+            .get();
+          const sectionCount = tx
+            .select({ n: count() })
+            .from(categories)
+            .where(eq(categories.storeId, storeId))
+            .get();
+          const categoryId =
+            existing?.id ??
+            tx
+              .insert(categories)
+              .values({ storeId, name: section, position: sectionCount?.n ?? 0 })
+              .returning({ id: categories.id })
+              .get().id;
+          const itemCount = tx
+            .select({ n: count() })
+            .from(menuItems)
+            .where(eq(menuItems.categoryId, categoryId))
+            .get();
+          return tx
+            .insert(menuItems)
+            .values({
+              ...item,
+              storeId,
+              categoryId,
+              position: itemCount?.n ?? 0,
+              unit: null,
+              imageUrl: null,
+              soldOut: false,
+            })
+            .returning()
+            .get();
+        }),
+      ),
+    );
   }
 }

@@ -11,17 +11,21 @@ export function StoreFooter({ store }: { store: Store }) {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2">
         <div className="space-y-3">
           <p className="font-heading text-2xl">{store.name}</p>
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <MapPin aria-hidden className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
-            {store.address}
-          </p>
-          <a
-            href={`tel:${store.phone.replace(/[^\d+]/g, "")}`}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <Phone aria-hidden className="size-4 shrink-0" strokeWidth={1.75} />
-            {store.phone}
-          </a>
+          {store.address ? (
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <MapPin aria-hidden className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+              {store.address}
+            </p>
+          ) : null}
+          {store.phone ? (
+            <a
+              href={`tel:${store.phone.replace(/[^\d+]/g, "")}`}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Phone aria-hidden className="size-4 shrink-0" strokeWidth={1.75} />
+              {store.phone}
+            </a>
+          ) : null}
         </div>
         <div>
           <h2 className="mb-3 font-heading text-lg">Opening hours</h2>

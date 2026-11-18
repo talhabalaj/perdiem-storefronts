@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { parseStoreRequest, toTenantKey } from "@/lib/tenant/parse";
+import { storeExists } from "@/lib/tenant/registry";
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN ?? "localhost";
 
 /**
  * Maps the public URL (host + path) onto the internal tenant route /t/<key>/...
- * Store lookup happens in the tenant layout; the proxy stays I/O-free.
+ * An address no store answers to is rewritten to a prerendered 404 page here, because with
+ * streaming the status can only be set before the response starts.
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -22,6 +24,7 @@ export function proxy(request: NextRequest) {
     rootDomain: ROOT_DOMAIN,
   });
   if (route.kind === "platform") return NextResponse.next();
+  if (!storeExists(route)) return NextResponse.rewrite(new URL("/store-not-found", request.url));
 
   const rest = route.kind === "path" ? route.rest : pathname;
   const target = new URL(

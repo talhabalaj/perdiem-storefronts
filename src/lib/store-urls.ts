@@ -12,10 +12,3 @@ export function storeUrls(
     { label: "Path", href: `/s/${store.slug}` },
   ];
 }
-
-/** The platform's own origin (store directory), e.g. http://localhost:3000. */
-export function platformUrl(request: { host: string | null; proto: string | null }): string {
-  const rootDomain = process.env.ROOT_DOMAIN ?? "localhost";
-  const port = request.host?.split(":")[1];
-  return `${request.proto ?? "http"}://${rootDomain}${port ? `:${port}` : ""}/`;
-}

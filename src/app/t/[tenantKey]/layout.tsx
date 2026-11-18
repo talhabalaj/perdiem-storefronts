@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { PlatformHomeProvider } from "@/components/platform/PlatformHome";
 import { StoreProvider } from "@/components/storefront/StoreContext";
-import { platformUrl } from "@/lib/store-urls";
 import { resolveTenant } from "@/lib/tenant/resolve";
 import { themeToCssVars } from "@/lib/theme/css-vars";
 
@@ -46,14 +43,8 @@ async function TenantFrame({ children, params }: LayoutProps<"/t/[tenantKey]">) 
   const tenant = await resolveTenant((await params).tenantKey);
   // Unknown store: no theme or store context. The page renders the platform 404 itself, so the
   // route still renders its request-time marker (calling notFound() here would skip the page).
-  if (!tenant) {
-    const requestHeaders = await headers();
-    const home = platformUrl({
-      host: requestHeaders.get("host"),
-      proto: requestHeaders.get("x-forwarded-proto"),
-    });
-    return <PlatformHomeProvider href={home}>{children}</PlatformHomeProvider>;
-  }
+  // The proxy already 404s unknown addresses; this only covers a store deleted mid-request.
+  if (!tenant) return children;
   const { store, basePath } = tenant;
   const { id, slug, name, currency, locale, timezone, hours } = store;
 

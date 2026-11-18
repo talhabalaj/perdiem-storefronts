@@ -4,6 +4,15 @@ import type { Page } from "@playwright/test";
 const PORT = 3211;
 const store = (host: string, path = "/") => `http://${host}:${PORT}${path}`;
 
+/** An address no store answers to: real 404 status, and the platform's not-found page. */
+async function expectNoStore(page: Page, url: string) {
+  const response = await page.goto(url);
+  expect(response?.status(), url).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "There's no store at this address" }),
+  ).toBeVisible();
+}
+
 const primaryColor = (page: Page) =>
   page
     .locator("[data-store]")
@@ -50,22 +59,21 @@ test("path routing works on the platform host, with the store's currency", async
   await expect(page.getByText("£10.95")).toBeVisible();
 });
 
-test("unknown stores get the platform 404, never another tenant", async ({ page }) => {
-  await page.goto(store("nope.localhost"));
-  await expect(
-    page.getByRole("heading", { name: "There's no store at this address" }),
-  ).toBeVisible();
+test("unknown stores return a real 404, never another tenant", async ({ page }) => {
+  await expectNoStore(page, store("nope.localhost"));
+  await expectNoStore(page, store("unknown-shop.test"));
+  await expectNoStore(page, "/s/does-not-exist");
   // "Home" on an unknown host must leave that host, or it would loop back to this page.
+  await page.goto(store("nope.localhost"));
   await expect(page.getByRole("link", { name: "Browse stores" })).toHaveAttribute(
     "href",
     `http://localhost:${PORT}/`,
   );
-  await page.goto("/s/does-not-exist");
-  await expect(
-    page.getByRole("heading", { name: "There's no store at this address" }),
-  ).toBeVisible();
   const internal = await page.request.get("/t/sub~luna");
   expect(internal.status()).toBe(404);
+  // Known stores are unaffected.
+  expect((await page.request.get(store("luna.localhost"))).status()).toBe(200);
+  expect((await page.request.get("/s/luna")).status()).toBe(200);
 });
 
 test("an unknown path inside a known store gets that store's themed 404", async ({ page }) => {
@@ -130,4 +138,51 @@ test("clearing an order can be undone", async ({ page }) => {
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByRole("button", { name: "Close order" })).toBeFocused();
   await expect(page.getByText("1 × ½ lb, $18.00")).toBeVisible();
+});
+
+test("a store created in the admin is live at once and editable", async ({ page }) => {
+  await page.goto("/admin/new");
+  await page.getByLabel("Store name", { exact: true }).fill("Corner Deli");
+  await expect(page.getByLabel("Address on this platform")).toHaveValue("corner-deli");
+  await page.getByText("Gallery", { exact: true }).click();
+  await page.getByRole("combobox", { name: /^Timezone/ }).selectOption("Europe/Dublin");
+  await page.getByRole("combobox", { name: /^Currency/ }).selectOption("EUR");
+  await page.getByRole("combobox", { name: /^Number and date format/ }).selectOption("en-GB");
+  await page.getByRole("button", { name: "Create store" }).click();
+
+  await expect(page).toHaveURL(/\/admin\/corner-deli\/menu$/);
+  await expect(page.getByText("No dishes yet. Add the first one above.")).toBeVisible();
+
+  // Live immediately at both addresses, with an empty-menu state.
+  expect((await page.request.get(store("corner-deli.localhost"))).status()).toBe(200);
+  expect((await page.request.get("/s/corner-deli")).status()).toBe(200);
+  await page.goto(store("corner-deli.localhost"));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Corner Deli");
+  await expect(page.getByText("The menu is on its way")).toBeVisible();
+
+  // Editable in the menu editor, and the dish appears on the storefront.
+  await page.goto("/admin/corner-deli/menu");
+  await page.getByLabel("Section", { exact: true }).fill("Sandwiches");
+  await page.getByLabel("Dish name", { exact: true }).fill("Reuben");
+  await page.getByLabel("Price (EUR)").fill("12.50");
+  await page.getByRole("button", { name: "Add dish" }).click();
+  await expect(page.getByLabel("Reuben name")).toBeVisible();
+
+  await page.goto(store("corner-deli.localhost"));
+  await expect(page.getByRole("heading", { name: "Reuben" })).toBeVisible();
+  await expect(page.getByText("€12.50")).toBeVisible();
+});
+
+test("the new-store form rejects taken and reserved addresses", async ({ page }) => {
+  await page.goto("/admin/new");
+  await page.getByLabel("Store name", { exact: true }).fill("Luna Again");
+  const address = page.getByLabel("Address on this platform");
+  await address.fill("luna");
+  await page.getByRole("button", { name: "Create store" }).click();
+  const formError = page.locator("form").getByRole("alert");
+  await expect(formError).toContainText("already taken");
+  await address.fill("admin");
+  await page.getByRole("button", { name: "Create store" }).click();
+  await expect(formError).toContainText("reserved");
+  await expect(page).toHaveURL(/\/admin\/new$/);
 });

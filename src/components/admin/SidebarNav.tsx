@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldAlert, Store } from "lucide-react";
+import { LayoutGrid, Plus, ShieldAlert, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -35,6 +35,13 @@ export function SidebarNav({ stores }: { stores: NavStore[] }) {
           className={`${item} shrink-0`}
         >
           <LayoutGrid aria-hidden className="size-4" /> All stores
+        </Link>
+        <Link
+          href="/admin/new"
+          aria-current={pathname === "/admin/new" ? "page" : undefined}
+          className={`${item} shrink-0`}
+        >
+          <Plus aria-hidden className="size-4" /> New store
         </Link>
         <p className="hidden px-2.5 pt-5 pb-1 text-xs font-medium text-muted-foreground lg:block">
           Stores

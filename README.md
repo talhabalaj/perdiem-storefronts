@@ -16,9 +16,10 @@ custom domain, or a `/s/<slug>` path.
   - [Ordering on a phone](#3-ordering-on-a-phone)
   - [Hours, currency and units per store](#4-hours-currency-and-units-per-store)
   - [Admin dashboard](#5-admin-dashboard)
-  - [Not-found pages that never leak another store](#6-not-found-pages-that-never-leak-another-store)
-  - [Per-store SEO, logo and favicon](#7-per-store-seo-logo-and-favicon)
-  - [Fresh data, cached reads](#8-fresh-data-cached-reads)
+  - [Create a store from the admin](#6-create-a-store-from-the-admin)
+  - [Real 404s that never leak another store](#7-real-404s-that-never-leak-another-store)
+  - [Per-store SEO, logo and favicon](#8-per-store-seo-logo-and-favicon)
+  - [Fresh data, cached reads](#9-fresh-data-cached-reads)
 - [How it works](#how-it-works)
 - [Quality: checks, tests and lint rules](#quality-checks-tests-and-lint-rules)
 - [Assumptions](#assumptions)
@@ -69,6 +70,7 @@ Chrome, Edge and Firefox send `*.localhost` to your own machine, so subdomains w
 | http://nope.localhost:3000            | unknown subdomain     | "There's no store at this address" |
 | http://luna.localhost:3000/not-a-page | known store, bad path | Luna-themed 404                    |
 | http://localhost:3000/admin           | platform host         | Admin dashboard                    |
+| http://localhost:3000/admin/new       | platform host         | Create a store                     |
 
 ¹ Add `127.0.0.1 order.lunacafe.test` to `/etc/hosts`, or run
 `curl -H 'Host: order.lunacafe.test' localhost:3000`. The end-to-end tests map this domain inside
@@ -103,9 +105,9 @@ All are optional.
 
 ### Add a store
 
-There's no "create store" screen yet. Copy one of the files in `src/db/seed/`, give it a new
-`slug`, then run `pnpm db:reset` and restart. The seed is validated with Zod when the app starts,
-so a typo fails loudly with the path of the bad field.
+Use **New store** in the admin (`/admin/new`): the store is live as soon as you create it. The three
+demo stores come from `src/db/seed/*.json`, which is validated with Zod when the app starts, so a
+typo there fails loudly with the path of the bad field.
 
 ## Features
 
@@ -209,6 +211,7 @@ At `/admin` on the platform host. Its pages and API return 404 through a store's
 ![Branding editor with live preview and contrast checks](docs/screenshots/admin-branding.jpg)
 
 - **Menu:**
+  - **Add a dish:** pick a section or type a new one
   - a searchable table with an All / Sold out filter
   - an availability switch that updates instantly and rolls back on error
   - inline edits to name, description and price
@@ -219,21 +222,51 @@ At `/admin` on the platform host. Its pages and API return 404 through a store's
 Admin reads always come from the database, not the storefront cache. Saves go through Server
 Actions that validate their input with Zod and then refresh only that store's cached data.
 
-### 6. Not-found pages that never leak another store
+### 6. Create a store from the admin
 
-An address that matches no store gets a platform page whose link goes to the platform's own
-address, so it can't loop back to itself. A bad path inside a known store gets that store's
-themed 404.
+**New store** asks for the few things a store needs to go live:
+
+- a name, and an address on the platform (suggested from the name)
+- an optional custom domain and street address
+- a starting look (one theme preset per layout, each passing WCAG AA, shown as live previews)
+- a timezone, a currency and a number format
+
+On **Create store** the new store is live at once at `<slug>.localhost:3000` and `/s/<slug>`. It
+shows a "menu is on its way" state until its first dish is added, and the admin opens straight on
+its menu editor. From there it's like any other store: add dishes, change the branding.
+
+How it works:
+
+- **Validation:** input is parsed with Zod. Addresses must be subdomain-safe, can't be ones the
+  platform reserves (`www`, `admin`, `api`…), and must be unique. Custom domains must be real
+  hostnames, unique, and outside the platform's own domain.
+- **Uniqueness:** checked inside the creating transaction, with the database's unique indexes as a
+  backstop.
+- **Live immediately:** any cached "no such store" result for that address is cleared, so the
+  store doesn't wait for a cache to expire.
+
+![New store form with live layout previews](docs/screenshots/admin-new.jpg)
+
+### 7. Real 404s that never leak another store
+
+An address that matches no store returns **HTTP 404** with the platform's "There's no store at
+this address" page. That covers an unknown subdomain, an unknown domain, and an unknown
+`/s/<slug>`. Its link goes to the platform's own address, so it can't loop back to itself. A bad
+path inside a known store gets that store's themed 404.
+
+With streaming, the status code is fixed as soon as the response starts, so this check happens in
+the proxy, before rendering: one indexed lookup by slug or hostname. Unknown addresses are
+rewritten to a route that was prerendered as a 404.
 
 ![Unknown store and store 404](docs/screenshots/not-found.jpg)
 
-### 7. Per-store SEO, logo and favicon
+### 8. Per-store SEO, logo and favicon
 
 Each store renders its own `<title>`, description, Open Graph tags and `theme-color`. Its logo
 appears in the header and serves as its favicon. A store without a logo gets a generated SVG
 favicon of its initial on its brand color.
 
-### 8. Fresh data, cached reads
+### 9. Fresh data, cached reads
 
 - **Cached reads.** Store and menu reads are `"use cache"` functions tagged
   `store:<slug>`, `menu:<slug>` and `stores`.
@@ -304,25 +337,28 @@ tests/unit/  e2e/               Vitest and Playwright suites
 `pnpm verify` runs everything. These numbers are from the last run:
 
 - **Static checks:** formatting (Oxfmt), lint (Oxlint) and a full type check, run through Vite+.
-- **43 unit tests** (Vitest):
+- **53 unit tests** (Vitest):
   - host and path parsing edge cases, and tenant keys
+  - new-store validation: reserved and malformed addresses, domains, timezones, currencies
   - timezone-aware open status, including overnight shifts and 12- and 24-hour locales
-  - repository tenant isolation and validation
-  - WCAG contrast of every seeded theme
+  - repository tenant isolation and validation; creating stores, conflicts, adding dishes
+  - WCAG contrast of every seeded theme and every preset
   - image-address rules
   - the custom lint rules themselves
-- **12 end-to-end tests** (Playwright, against a production build with a throwaway database):
+- **14 end-to-end tests** (Playwright, against a production build with a throwaway database):
   - each subdomain has its own name, data and brand color
   - per-store title, `theme-color` and favicon
   - the menu is in the server HTML
   - custom domain and path routing
-  - unknown stores and the not-found link
+  - unknown hosts, domains and paths return HTTP 404, and the not-found link
   - the themed store 404
   - carts stay separate on a shared origin
   - an admin edit is visible on the very next request
   - keyboard focus after Add
   - the branding form survives a half-typed URL
   - clearing an order can be undone
+  - a store created in the admin is live at once, shows an empty menu, and takes a new dish
+  - the new-store form rejects taken and reserved addresses
 
 **Lint rules against sloppy code** ([`vite.config.ts`](vite.config.ts),
 [`lint/slop-plugin.ts`](lint/slop-plugin.ts)):
@@ -348,8 +384,9 @@ tests/unit/  e2e/               Vitest and Playwright suites
 - The subdomain is the store's slug. Custom domains are explicit records.
 - Ordering stops at the order sheet. Checkout and payments are out of scope.
 - The admin is an internal tool with **no authentication**. A note in its sidebar says so.
-- Selling units, hours and location come from a store's data. The admin shows them but doesn't
-  edit them yet.
+- New stores open every day 09:00–21:00 until real hours are set.
+- Selling units, hours and phone come from a store's data. The admin shows them but doesn't edit
+  them yet.
 
 ## Trade-offs
 
@@ -362,9 +399,11 @@ tests/unit/  e2e/               Vitest and Playwright suites
   - Pages now render per request on top of tag-cached data. That costs a render per view, but
     every request after an edit is fresh and the HTML is complete.
   - At scale I'd put a CDN in front, with a short `s-maxage` and `stale-while-revalidate` per host.
-- **Unknown stores return HTTP 200** with a `noindex` page. The store content streams inside a
-  Suspense boundary, so the status is sent before the lookup finishes. A real 404 would need the
-  lookup in the proxy, for example against an edge key-value store mapping hostnames to stores.
+- **A database lookup in the proxy.** It costs one indexed query per storefront request. It's read
+  live rather than cached, so a new store counts at once. Next recommends keeping the proxy light,
+  and this is the smallest check that still lets an unknown store return a real 404 before
+  streaming starts. At scale it would move to an edge key-value store that's updated whenever a
+  store or domain changes.
 - **A curated font list** instead of any Google Font, because `next/font` resolves at build time.
 - **Theme as validated JSON** instead of a column per token. Easy to version and extend, at the
   cost of database-level constraints.
@@ -372,10 +411,10 @@ tests/unit/  e2e/               Vitest and Playwright suites
 ## With more time
 
 - Sign-in for the admin with per-store roles (owners edit only their store), plus an audit log.
-- Creating stores and adding domains from the admin, with DNS and TLS verification for custom
-  domains, and a hostname-to-store map at the edge for real 404s.
+- DNS and TLS verification for custom domains, editing domains after creation, and a
+  hostname-to-store map at the edge in place of the proxy's database lookup.
 - Postgres with row-level security on the store ID, and image uploads instead of URLs.
-- Editable hours, units and locations; multiple locations per store; item options; real checkout;
-  loyalty.
+- Editable hours, units and phone; deleting stores, sections and dishes; multiple locations per
+  store; item options; real checkout; loyalty.
 - Palette suggestions that always pass contrast, and more layouts.
 - Visual regression snapshots for each store, and CI running `pnpm verify` on every pull request.
